@@ -32,7 +32,11 @@ mongoose
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://datn-fe-vem5.onrender.com"],
+    origin: [
+      "http://localhost:3000",
+      "https://datn-fe-vem5.onrender.com",
+      "https://datn-fe-krf1.onrender.com",
+    ],
     credentials: true,
   })
 );
@@ -40,7 +44,11 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cookie: true,
   cors: {
-    origin: ["http://localhost:3000", "https://datn-fe-vem5.onrender.com"],
+    origin: [
+      "http://localhost:3000",
+      "https://datn-fe-vem5.onrender.com",
+      "https://datn-fe-krf1.onrender.com",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
