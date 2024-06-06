@@ -32,7 +32,7 @@ mongoose
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://datn-fe-2gso.onrender.com/"],
     credentials: true,
   })
 );
