@@ -40,7 +40,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cookie: true,
   cors: {
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000", "https://datn-fe-2gso.onrender.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
