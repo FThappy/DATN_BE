@@ -1,5 +1,4 @@
 import admin from "firebase-admin";
-import serviceAccount from "../social-charity.json" assert { type: "json" };
 import dotenv from "dotenv";
 dotenv.config();
 

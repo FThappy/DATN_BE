@@ -1,4 +1,3 @@
-import { eventarc_v1beta1 } from "googleapis";
 import admin from "../config/firebase.js";
 import User from "../models/User.js";
 import { changeFile, deleteFile, uploadFile } from "../utils/file.js";

@@ -21,8 +21,10 @@ const authenticateToken = (socket, next) => {
   const rawToken = handshake.headers.cookie;
   const tmpToken = rawToken.split(";")[0];
   const token = tmpToken.split("=")[1];
+  console.log(token);
   jwt.verify(token, process.env.JWT_SEC, async (err, id) => {
     if (err) {
+      console.log(err);
       socket.emit("error-global", {
         msg: "Hết phiên đăng nhập",
         code: 4,

@@ -6,6 +6,8 @@ import { checkValidCard } from "../utils/utilsCard.js";
 
 const bucket = admin.storage().bucket();
 
+const NUMBER_PROJECT = 8;
+
 export const createProject = async (req, res) => {
   const projectName = req.body.projectName;
   const date = new Date(req.body.date);
@@ -15,8 +17,10 @@ export const createProject = async (req, res) => {
   const listType = JSON.parse(type);
   const cardNumber = req.body.cardNumber;
   const description = req.body.description;
-  const file = req.files;
+  const file = req.files.file ? req.files.file : [];
+  const fileContent = req.files.fileContent;
   const content = req.body.content;
+  const contentJSON = JSON.parse(content);
   const time = new Date().getTime();
 
   try {
@@ -41,17 +45,35 @@ export const createProject = async (req, res) => {
       return url;
     });
     const urlFile = await Promise.all(promises);
+
+    if (fileContent && fileContent.length > 0) {
+      const promisesContent = fileContent.map(async (file, index) => {
+        const url = await uploadFile(
+          file,
+          index,
+          time,
+          req.userId.id,
+          "project"
+        );
+        contentJSON.content.filter((item) => item.type === "image")[
+          index
+        ].attrs.src = url;
+      });
+      const urlFileContent = await Promise.all(promisesContent);
+    }
+
     const newProject = new Project({
       userId: req.userId.id,
       projectName: projectName,
       timeEnd: date,
       description: description,
       city: city,
-      content: content,
+      content: contentJSON,
       image: urlFile,
       type: listType,
       filePath: `project-${req.userId.id}-${time}`,
     });
+
     if (goal) {
       newProject.goal = goal;
     }
@@ -74,18 +96,20 @@ export const createProject = async (req, res) => {
 
 export const updateProject = async (req, res) => {
   const projectName = req.body.projectName;
-  console.log(req.body.date);
-  const date = new Date(req.body.date) ;
+  const date = req.body.date ? new Date(req.body.date) : undefined;
   const goal = Number(req.body.goal);
   const city = req.body.city;
   const type = req.body.type;
   const listType = type ? JSON.parse(type) : undefined;
   const cardNumber = req.body.cardNumber;
   const description = req.body.description;
-  const content = req.body.content;
-  const newFile = req.files;
+  const newFile = req.files.file;
+  const fileContent = req.files.fileContent;
   const imageRemove = req.body.imageRemove;
+  const imageContentRemove = req.body.imageContentRemove;
   const projectId = req.query.projectId;
+  const content = req.body.content;
+  const contentJSON = JSON.parse(content);
   try {
     const project = await Project.findOne({
       _id: projectId,
@@ -122,8 +146,33 @@ export const updateProject = async (req, res) => {
     if (description) {
       project.description = description;
     }
-    if (content) {
-      project.content = content;
+    if (fileContent && fileContent.length > 0) {
+      const promisesContent = fileContent.map(async (file, index) => {
+        const url = await changeFile(
+          file,
+          index,
+          project.filePath,
+          project.__v + 1
+        );
+        contentJSON.content.filter(
+          (item) => item.type === "image" && item.attrs.src.startsWith("blob")
+        )[index].attrs.src = url;
+      });
+      const urlFile = await Promise.all(promisesContent);
+    }
+    if (imageContentRemove) {
+      const listRemove = JSON.parse(imageContentRemove);
+      const promise = listRemove.map(async (urlImageRemove, index) => {
+        const fileUrl = urlImageRemove.split("/");
+        const originalName = fileUrl[5].split("?")[0];
+        const path = fileUrl[4] + "/" + originalName;
+        await deleteFile(path);
+      });
+      await Promise.all(promise);
+
+      project.image = project.image.filter(
+        (item) => !listRemove.includes(item)
+      );
     }
     if (imageRemove) {
       const listRemove = JSON.parse(imageRemove);
@@ -139,6 +188,7 @@ export const updateProject = async (req, res) => {
         (item) => !listRemove.includes(item)
       );
     }
+
     if (newFile) {
       const promises = newFile.map(async (file, index) => {
         const url = await changeFile(
@@ -152,6 +202,7 @@ export const updateProject = async (req, res) => {
       const urlFile = await Promise.all(promises);
       project.image = [...project.image, ...urlFile];
     }
+    project.content = contentJSON;
     await project.save();
     return res
       .status(200)
@@ -175,6 +226,84 @@ export const getProjectById = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Success", code: 0, project: project });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+// export const deleteEventById = async (req, res) => {
+//   const userId = req.query.userId;
+//   const eventId = req.query.eventId;
+//   try {
+//     const event = await Event.findOne({ _id: eventId, userId: userId });
+//     if (!event) {
+//       return res.status(404).json({ msg: "Not found event", code: 3 });
+//     } else {
+//       event.isDelete = true;
+//       await event.save();
+//       return res.status(200).json({ message: "Success delete", code: 0 });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: "Server error", code: 4 });
+//   }
+// };
+
+export const getProject = async (req, res) => {
+  const page = req.query.page;
+  try {
+    const skipProject = page * NUMBER_PROJECT;
+    const listProject = await Project.find({ isDelete: false, isLock: false })
+      .sort({ _id: -1 })
+      .skip(skipProject)
+      .limit(8);
+    return res
+      .status(200)
+      .json({ message: "Success", data: listProject, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const projectSearch = async (req, res) => {
+  const { qSearch, qCity, qType, qSort, page } = req.body;
+  try {
+    const querySearch = {
+      isDelete: false,
+      isLock: false,
+    };
+    if (qCity) {
+      querySearch.city = qCity;
+    }
+    if (qType && qType.length >0) {
+      querySearch.type = { $all: qType };
+    }
+    if (qSearch) {
+      querySearch.projectName = {
+        $regex: qSearch,
+        $options: "i",
+      };
+    }
+    if (qSort === "new") {
+      const skipProject = page * NUMBER_PROJECT;
+      const listProject = await Project.find(querySearch)
+        .sort({ _id: -1 })
+        .skip(skipProject)
+        .limit(8);
+      return res
+        .status(200)
+        .json({ message: "Success", data: listProject, code: 0 });
+    } else {
+      const skipProject = page * NUMBER_PROJECT;
+      const listProject = await Project.find(querySearch)
+        .skip(skipProject)
+        .limit(8);
+      return res
+        .status(200)
+        .json({ message: "Success", data: listProject, code: 0 });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });

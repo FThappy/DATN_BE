@@ -7,7 +7,7 @@ const ProjectSchema = new mongoose.Schema(
     timeEnd: { type: Date },
     city: { type: String, required: true },
     description: { type: String },
-    content: { type: String },
+    content: { type: Object },
     filePath: { type: String },
     type: { type: Array },
     rise: { type: Number },
