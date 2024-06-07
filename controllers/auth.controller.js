@@ -112,7 +112,7 @@ export const login = async (req, res) => {
 
     return res
       .cookie("Authorization", accessToken, {
-        // httpOnly: true,
+        httpOnly: true,
         maxAge: age,
         secure: true, // https
         sameSite: "None",
