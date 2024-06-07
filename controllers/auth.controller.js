@@ -114,6 +114,7 @@ export const login = async (req, res) => {
       .cookie("Authorization", accessToken, {
         httpOnly: true,
         maxAge: age,
+        secure: true, // https
         sameSite: "None",
       })
       .status(200)
