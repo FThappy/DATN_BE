@@ -33,7 +33,7 @@ mongoose
 app.use(
   cors({
     // origin: "http://localhost:3000",
-    origin: "https://datn-fe-5j77.onrender.com",
+    origin: "https://datn-fe-omega.vercel.app",
     credentials: true,
   })
 );
@@ -42,7 +42,7 @@ const io = new Server(server, {
   cookie: true,
   cors: {
     // origin: "http://localhost:3000",
-    origin: "https://datn-fe-5j77.onrender.com",
+    origin: "https://datn-fe-omega.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
