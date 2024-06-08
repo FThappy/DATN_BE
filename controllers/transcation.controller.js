@@ -31,7 +31,7 @@ export const zalopay = async (req, res) => {
     amount: req.body.amount,
     // khi thanh toán xong, zalopay server sẽ POST đến url này để thông báo cho server của mình
     // Chú ý: cần dùng ngrok để public url thì Zalopay Server mới call đến được
-    callback_url: "http://localhost:5000/api/transcation/callback",
+    callback_url: "https://datn-be-zrcv.onrender.com/api/transcation/callback",
     description: `Chuyển khoản tiền từ thiện #${transID}`,
     bank_code: "",
   };
