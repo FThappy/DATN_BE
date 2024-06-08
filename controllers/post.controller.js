@@ -151,7 +151,7 @@ export const deletePost = async (req, res) => {
   const userId = req.query.userId;
   const postId = req.query.postId;
   try {
-    const post = await Post.findOne({ _id: postId, userId: userId });
+    const post = await Post.findOne({ _id: postId, userId: req.userId.id });
     if (!post) {
       return res.status(404).json({ msg: "Not found post", code: 3 });
     } else {

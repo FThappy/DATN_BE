@@ -8,6 +8,7 @@ import userRoute from "./routes/user.route.js";
 import reportRoute from "./routes/report.route.js";
 import eventRoute from "./routes/event.route.js";
 import projectRoute from "./routes/project.route.js";
+import transcationRoute from "./routes/transcation.route.js";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
@@ -32,8 +33,8 @@ mongoose
 
 app.use(
   cors({
-    // origin: "http://localhost:3000",
-    origin: "https://datn-fe-3xyo.onrender.com",
+    origin: "http://localhost:3000",
+    // origin: "https://datn-fe-3xyo.onrender.com",
     credentials: true,
   })
 );
@@ -41,8 +42,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cookie: true,
   cors: {
-    // origin: "http://localhost:3000",
-    origin: "https://datn-fe-3xyo.onrender.com",
+    origin: "http://localhost:3000",
+    // origin: "https://datn-fe-3xyo.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -86,7 +87,7 @@ app.use("/api/user", userRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/event", eventRoute);
 app.use("/api/project", projectRoute);
-
+app.use("/api/transcation", transcationRoute);
 
 
 

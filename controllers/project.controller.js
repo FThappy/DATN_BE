@@ -232,23 +232,22 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// export const deleteEventById = async (req, res) => {
-//   const userId = req.query.userId;
-//   const eventId = req.query.eventId;
-//   try {
-//     const event = await Event.findOne({ _id: eventId, userId: userId });
-//     if (!event) {
-//       return res.status(404).json({ msg: "Not found event", code: 3 });
-//     } else {
-//       event.isDelete = true;
-//       await event.save();
-//       return res.status(200).json({ message: "Success delete", code: 0 });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({ message: "Server error", code: 4 });
-//   }
-// };
+export const deleteProjectById = async (req, res) => {
+  const projectId = req.query.projectId;
+  try {
+    const project = await Project.findOne({ _id: projectId, userId: req.userId.id });
+    if (!project) {
+      return res.status(404).json({ msg: "Not found event", code: 3 });
+    } else {
+      project.isDelete = true;
+      await project.save();
+      return res.status(200).json({ message: "Success delete", code: 0 });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
 
 export const getProject = async (req, res) => {
   const page = req.query.page;
@@ -309,3 +308,4 @@ export const projectSearch = async (req, res) => {
     return res.status(500).json({ message: "Server error", code: 4 });
   }
 };
+

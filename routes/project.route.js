@@ -4,7 +4,7 @@ import multer from "multer";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 import { multerError } from "../utils/multerError.js";
-import { createProject, getProject, getProjectById, projectSearch, updateProject } from "../controllers/project.controller.js";
+import { createProject, deleteProjectById, getProject, getProjectById, projectSearch, updateProject } from "../controllers/project.controller.js";
 
 const router = express.Router();
 
@@ -40,6 +40,7 @@ router.put(
   verifyToken,
   updateProject
 );
+router.delete("", verifyToken, deleteProjectById);
 router.get("", getProject);
 router.post("/search", projectSearch);
 

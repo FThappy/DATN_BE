@@ -148,7 +148,7 @@ export const deleteEventById = async (req, res) => {
   const userId = req.query.userId;
   const eventId = req.query.eventId;
   try {
-    const event = await Event.findOne({ _id: eventId, userId: userId });
+    const event = await Event.findOne({ _id: eventId, userId: req.userId.id });
     if (!event) {
       return res.status(404).json({ msg: "Not found event", code: 3 });
     } else {
