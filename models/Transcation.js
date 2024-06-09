@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 const TranscationSchema = new mongoose.Schema(
   {
     projectId: { type: String },
-    money: { type: Number },
-    createBy: { type: String },
+    userId: { type: String },
+    amount: { type: Number },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Transcation", TranscationSchema);
+const Transcation = mongoose.model("Transcation", TranscationSchema);
+export default Transcation;
