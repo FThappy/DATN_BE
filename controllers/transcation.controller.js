@@ -13,13 +13,17 @@ const config = {
   endpoint: "https://sb-openapi.zalopay.vn/v2/create",
 };
 
+const NUMBER_TRANSCATION = 10;
+
 export const zalopay = async (req, res) => {
   try {
     const project = await Project.findOne({ _id: req.body.projectId });
     if (!project) {
-      return res.status(404).json({ message: " Project Không tồn tại", code: 5 });
+      return res
+        .status(404)
+        .json({ message: " Project Không tồn tại", code: 5 });
     }
-    const user = await User.findOne({ _id: req.body.userId });
+    const user = await User.findOne({ _id: req.userId.id });
     if (!user) {
       return res.status(404).json({ message: " User not exist", code: 6 });
     }
@@ -27,7 +31,7 @@ export const zalopay = async (req, res) => {
       // sau khi hoàn tất thanh toán sẽ đi vào link này (thường là link web thanh toán thành công của mình)
       redirecturl: "http://localhost:3000",
       projectId: req.body.projectId,
-      userId: req.body.userId,
+      userId: req.userId.id,
     };
 
     const items = [];
@@ -36,7 +40,7 @@ export const zalopay = async (req, res) => {
     const order = {
       app_id: config.app_id,
       app_trans_id: `${moment().format("YYMMDD")}_${transID}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
-      app_user: req.body.userId,
+      app_user: req.userId.id,
       app_time: Date.now(), // milliseconds
       item: JSON.stringify(items),
       embed_data: JSON.stringify(embed_data),
@@ -75,11 +79,8 @@ export const zalopay = async (req, res) => {
 
 export const callbackZalopay = async (req, res) => {
   let result = {};
-  console.log(JSON.parse(JSON.parse(req.body.data).embed_data));
   const projectId = JSON.parse(JSON.parse(req.body.data).embed_data).projectId;
-  const userId = JSON.parse(
-      JSON.parse(req.body.data).embed_data
-    ).userId;
+  const userId = JSON.parse(JSON.parse(req.body.data).embed_data).userId;
   const amount = JSON.parse(req.body.data).amount;
 
   try {
@@ -103,6 +104,10 @@ export const callbackZalopay = async (req, res) => {
         dataJson["app_trans_id"]
       );
 
+      const project = await Project.findOne({_id : projectId});
+      project.rise = project.rise + amount;
+      await project.save();
+
       const newTranscation = new Transcation({
         projectId: projectId,
         userId: userId,
@@ -120,4 +125,62 @@ export const callbackZalopay = async (req, res) => {
 
   // thông báo kết quả cho ZaloPay server
   res.json(result);
+};
+
+// GET
+
+export const getTranscation = async (req, res) => {
+  const page = req.query.page;
+  try {
+    const skipTranscation = page * NUMBER_TRANSCATION;
+    const listTranscation = await Transcation.find()
+      .sort({ _id: -1 })
+      .skip(skipTranscation)
+      .limit(8);
+    return res
+      .status(200)
+      .json({ message: "Success", data: listTranscation, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const getTranscationByUserId = async (req, res) => {
+  const page = req.query.page;
+  try {
+    const skipTranscation = page * NUMBER_TRANSCATION;
+    const listTranscation = await Transcation.find({
+      userId: req.userId.id,
+    })
+      .sort({ _id: -1 })
+      .skip(skipTranscation)
+      .limit(8);
+    return res
+      .status(200)
+      .json({ message: "Success", data: listTranscation, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const getTranscationByProjectId = async (req, res) => {
+  const page = req.query.page;
+  const projectId = req.query.projectId
+  try {
+    const skipTranscation = page * NUMBER_TRANSCATION;
+    const listTranscation = await Transcation.find({
+      projectId: projectId,
+    })
+      .sort({ _id: -1 })
+      .skip(skipTranscation)
+      .limit(8);
+    return res
+      .status(200)
+      .json({ message: "Success", data: listTranscation, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
 };
