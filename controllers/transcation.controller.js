@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import moment from "moment";
 import Project from "./../models/Project.js";
 import User from "../models/User.js";
+import Transcation from "../models/Transcation.js";
 
 const config = {
   app_id: "2553",
@@ -14,14 +15,14 @@ const config = {
 
 export const zalopay = async (req, res) => {
   try {
-    // const project = await Project.findOne({ _id: req.body.projectId });
-    // if (!project) {
-    //   return res.status(404).json({ message: " Project Không tồn tại", code: 5 });
-    // }
-    // const user = await User.findOne({ _id: req.body.userId });
-    // if (!user) {
-    //   return res.status(404).json({ message: " User not exist", code: 6 });
-    // }
+    const project = await Project.findOne({ _id: req.body.projectId });
+    if (!project) {
+      return res.status(404).json({ message: " Project Không tồn tại", code: 5 });
+    }
+    const user = await User.findOne({ _id: req.body.userId });
+    if (!user) {
+      return res.status(404).json({ message: " User not exist", code: 6 });
+    }
     const embed_data = {
       // sau khi hoàn tất thanh toán sẽ đi vào link này (thường là link web thanh toán thành công của mình)
       redirecturl: "http://localhost:3000",
@@ -74,7 +75,13 @@ export const zalopay = async (req, res) => {
 
 export const callbackZalopay = async (req, res) => {
   let result = {};
-  console.log(req.body.embed_data.userId);
+  console.log(JSON.parse(JSON.parse(req.body.data).embed_data));
+  const projectId = JSON.parse(JSON.parse(req.body.data).embed_data).projectId;
+  const userId = JSON.parse(
+      JSON.parse(req.body.data).embed_data
+    ).userId;
+  const amount = JSON.parse(req.body.data).amount;
+
   try {
     let dataStr = req.body.data;
     let reqMac = req.body.mac;
@@ -96,6 +103,12 @@ export const callbackZalopay = async (req, res) => {
         dataJson["app_trans_id"]
       );
 
+      const newTranscation = new Transcation({
+        projectId: projectId,
+        userId: userId,
+        amount: amount,
+      });
+      await newTranscation.save();
       result.return_code = 1;
       result.return_message = "success";
     }
