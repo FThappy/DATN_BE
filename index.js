@@ -9,10 +9,14 @@ import reportRoute from "./routes/report.route.js";
 import eventRoute from "./routes/event.route.js";
 import projectRoute from "./routes/project.route.js";
 import transcationRoute from "./routes/transcation.route.js";
+import requestAddFriendRoute from "./routes/requestAddFriend.route.js";
+import friendRoute from "./routes/friend.route.js";
+import notificationRoute from "./routes/notification.route.js";
+import likeRoute from "./routes/like.route.js";
+import messageRoute from "./routes/message.route.js";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
-import jwt from "jsonwebtoken";
 import {
   changeComment,
   deleteComment,
@@ -20,7 +24,22 @@ import {
   leaveRoom,
   loadMoreComment,
   sendComment,
-} from "./utils/socket.js";
+} from "./controllers/comment.controller.js";
+import {
+  acceptRequestAddFriend,
+  createReqAddFriend,
+} from "./controllers/requestAddFriend.controller.js";
+import {
+  joinRoomNotification,
+  removeNotification,
+} from "./controllers/notification.controller.js";
+import {
+  changeRepComment,
+  deleteRepComment,
+  loadMoreRepComment,
+  repComment,
+} from "./controllers/repComment.controller.js";
+import { deleteMessage, joinMessRoom, readMessage, sendFirstMessage, sendMessage } from "./controllers/messenger.controller.js";
 const app = express();
 dotenv.config();
 
@@ -55,6 +74,19 @@ const onConnection = (socket) => {
   changeComment(io, socket);
   deleteComment(io, socket);
   leaveRoom(io, socket);
+  repComment(io, socket);
+  loadMoreRepComment(io, socket);
+  deleteRepComment(io, socket);
+  changeRepComment(io, socket);
+  createReqAddFriend(io, socket);
+  acceptRequestAddFriend(io, socket);
+  joinRoomNotification(io, socket);
+  removeNotification(io, socket);
+  sendFirstMessage(io, socket);
+  joinMessRoom(io, socket);
+  sendMessage(io, socket);
+  deleteMessage(io, socket);
+  readMessage(io, socket);
 };
 // io.use((socket, next) => {
 //   const handshake = socket.handshake;
@@ -88,8 +120,11 @@ app.use("/api/report", reportRoute);
 app.use("/api/event", eventRoute);
 app.use("/api/project", projectRoute);
 app.use("/api/transcation", transcationRoute);
-
-
+app.use("/api/reqAddFriend", requestAddFriendRoute);
+app.use("/api/friend", friendRoute);
+app.use("/api/notification", notificationRoute);
+app.use("/api/like", likeRoute);
+app.use("/api/message", messageRoute);
 
 
 server.listen(5000, () => {

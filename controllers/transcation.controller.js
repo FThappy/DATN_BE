@@ -1,6 +1,5 @@
 import axios from "axios";
 import CryptoJS from "crypto-js";
-import bodyParser from "body-parser";
 import moment from "moment";
 import Project from "./../models/Project.js";
 import User from "../models/User.js";
@@ -136,7 +135,7 @@ export const getTranscation = async (req, res) => {
     const listTranscation = await Transcation.find()
       .sort({ _id: -1 })
       .skip(skipTranscation)
-      .limit(8);
+      .limit(10);
     return res
       .status(200)
       .json({ message: "Success", data: listTranscation, code: 0 });
@@ -155,7 +154,7 @@ export const getTranscationByUserId = async (req, res) => {
     })
       .sort({ _id: -1 })
       .skip(skipTranscation)
-      .limit(8);
+      .limit(10);
     return res
       .status(200)
       .json({ message: "Success", data: listTranscation, code: 0 });
@@ -175,7 +174,7 @@ export const getTranscationByProjectId = async (req, res) => {
     })
       .sort({ _id: -1 })
       .skip(skipTranscation)
-      .limit(8);
+      .limit(10);
     return res
       .status(200)
       .json({ message: "Success", data: listTranscation, code: 0 });

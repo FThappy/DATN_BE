@@ -10,7 +10,7 @@ router.post("/zalopay", verifyToken, zalopay);
 router.post("/callback-zalopay", callbackZalopay)
 router.get("", getTranscation);
 router.get("/user", verifyToken, getTranscationByUserId)
-router.get("/project", verifyToken, getTranscationByProjectId);
+router.get("/project", getTranscationByProjectId);
 
 
 export default router;

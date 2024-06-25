@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const PostSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true },
-    organizationId: { type: String },
     document: { type: String },
     img: { type: Array },
     filePath: { type: String },
@@ -19,9 +18,10 @@ const PostSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    type: {
+    typeShare: {
       type: String,
-    }
+    },
+    linkItem : { type: String}
   },
   { timestamps: true }
 );

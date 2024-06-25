@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const ReportSchema = new mongoose.Schema(
   {
     itemId: { type: String },
-    userID : { type: String },
+    userId : { type: String },
     type: { type: String },
     reason: { type: Array },
     detail: {type : String}

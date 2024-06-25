@@ -1,7 +1,6 @@
 import admin from "../config/firebase.js";
 import User from "../models/User.js";
 import { changeFile, deleteFile, uploadFile } from "../utils/file.js";
-import Post from "./../models/Post.js";
 import Event from "../models/Event.js";
 import Join from "../models/Join.js";
 
@@ -211,7 +210,6 @@ export const createJoinEvent = async (req, res) => {
     const newJoin = new Join({
       itemId: eventId,
       userId: userId,
-      type: "event",
     });
     await newJoin.save();
     return res

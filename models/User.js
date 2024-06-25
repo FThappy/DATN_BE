@@ -20,7 +20,6 @@ const UserSchema = new mongoose.Schema(
     },
     img: { type: String },
     wall: { type: String },
-    card: { type: String },
   },
   { timestamps: true }
 );

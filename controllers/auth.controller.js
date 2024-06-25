@@ -7,10 +7,9 @@ import { checkValidPhoneNumber } from "./../utils/utilsPhone.js";
 import CryptoJS from "crypto-js";
 import bcrypt from "bcrypt";
 
-
 export const register = async (req, res) => {
   try {
-    const { inforRegister, otp } = req.body;
+    const { inforRegister, otp, type } = req.body;
     if (
       !inforRegister.username ||
       !inforRegister.email ||
@@ -37,8 +36,12 @@ export const register = async (req, res) => {
     if (!checkValidPhoneNumber(inforRegister.phone)) {
       return res.status(400).json({ message: "Phone not valid", code: 5 });
     }
-    const isOTP = await OTP.findOne({ email: inforRegister.email, otp: otp }); 
-    
+    const isOTP = await OTP.findOne({
+      email: inforRegister.email,
+      otp: otp,
+      type: type,
+    });
+
     if (!isOTP) {
       return res.status(404).json({ msg: "Not found otp", code: 1 });
     }
@@ -64,7 +67,11 @@ export const register = async (req, res) => {
       birth: inforRegister.birth,
     });
     await newUser.save();
-    await OTP.findOneAndDelete({ email: inforRegister.email, otp: otp });
+    await OTP.findOneAndDelete({
+      email: inforRegister.email,
+      otp: otp,
+      type: type,
+    });
     return res.status(200).json({ message: "Success register", code: 0 });
   } catch (error) {
     console.log(error);
@@ -125,6 +132,7 @@ export const login = async (req, res) => {
           id: user._id,
           username: user.username,
           img: user.img,
+          displayName: user.displayname,
         },
       });
   } catch (error) {
@@ -134,7 +142,7 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
   try {
-    if(!req.cookies.Authorization){
+    if (!req.cookies.Authorization) {
       return res.status(500).json({ message: "Not Authenticated!", code: 4 });
     }
     res.clearCookie("Authorization");
@@ -156,7 +164,10 @@ export const sendOTPRegister = async (req, res) => {
       return res.status(400).json({ message: "Email exist", code: 6 });
     }
     try {
-      await OTP.findOneAndDelete({ email: dataSend.email });
+      await OTP.findOneAndDelete({
+        email: dataSend.email,
+        type: dataSend.type,
+      });
     } catch (error) {
       return res.status(500).json({ message: "Server error", code: 4 });
     }
@@ -165,6 +176,7 @@ export const sendOTPRegister = async (req, res) => {
       const newOTP = new OTP({
         otp: _OTP,
         email: dataSend.email,
+        type: dataSend.type,
       });
       await newOTP.save();
     } catch (error) {
@@ -178,6 +190,7 @@ export const sendOTPRegister = async (req, res) => {
 };
 export const forgotPassword = async (req, res) => {
   const email = req.body.email;
+  const type = req.body.type;
   try {
     if (!checkValidGmail(email)) {
       return res.status(400).json({ message: "Email not valid", code: 2 });
@@ -187,7 +200,7 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email not exist", code: 1 });
     }
     try {
-      await OTP.findOneAndDelete({ email: email });
+      await OTP.findOneAndDelete({ email: email, type: type });
     } catch (error) {
       return res.status(500).json({ message: "Server error", code: 4 });
     }
@@ -196,6 +209,7 @@ export const forgotPassword = async (req, res) => {
       const newOTP = new OTP({
         otp: _OTP,
         email: email,
+        type: type,
       });
       await newOTP.save();
     } catch (error) {
@@ -209,7 +223,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const browserOTP = async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp, type } = req.body;
   try {
     if (!checkValidGmail(email)) {
       return res.status(400).json({ message: "Email not valid", code: 1 });
@@ -218,12 +232,12 @@ export const browserOTP = async (req, res) => {
     if (!isEmail) {
       return res.status(404).json({ message: "Email not exist", code: 2 });
     }
-    const isOTP = await OTP.findOne({ email: email, otp: otp });
+    const isOTP = await OTP.findOne({ email: email, otp: otp, type: type });
     if (!isOTP) {
       return res.status(404).json({ msg: "Not found otp", code: 3 });
     }
     try {
-      await OTP.findOneAndDelete({ email: email, otp: otp });
+      await OTP.findOneAndDelete({ email: email, otp: otp, type: type });
     } catch (error) {
       return res.status(500).json({ message: "Server error", code: 4 });
     }
@@ -289,10 +303,157 @@ export const rePassword = async (req, res) => {
       console.log(error);
       return res.status(500).json({ message: "Server Error", code: 4 });
     }
-
     return res.status(200).json({ message: "Access ", code: 0 });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });
   }
 };
+export const getOTPCertainUser = async (req, res) => {
+  const email = req.body.email;
+  const type = req.body.type;
+  const message = req.body.message;
+  try {
+    if (!checkValidGmail(email)) {
+      return res.status(400).json({ message: "Email not valid", code: 2 });
+    }
+    const isEmail = await User.findOne({ email: email });
+    if (!isEmail) {
+      return res.status(400).json({ message: "Email not exist", code: 1 });
+    }
+    try {
+      await OTP.findOneAndDelete({ email: email, type: type });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", code: 4 });
+    }
+    try {
+      const _OTP = await sendMail(message, email);
+      const newOTP = new OTP({
+        otp: _OTP,
+        email: email,
+        type: type,
+      });
+      await newOTP.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Send OTP Error", code: 3 });
+    }
+    return res.status(200).json({ message: "Access send OTP", code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const certainUser = async (req, res) => {
+  const { email, otp, type } = req.body;
+  try {
+    if (!checkValidGmail(email)) {
+      return res.status(400).json({ message: "Email not valid", code: 1 });
+    }
+    const isEmail = await User.findOne({ email: email });
+    if (!isEmail) {
+      return res.status(404).json({ message: "Email not exist", code: 2 });
+    }
+    const isOTP = await OTP.findOne({ email: email, otp: otp, type: type });
+    if (!isOTP) {
+      return res.status(404).json({ msg: "Not found otp", code: 3 });
+    }
+    try {
+      await OTP.findOneAndDelete({ email: email, otp: otp, type: type });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", code: 4 });
+    }
+    const tokenChange = jwt.sign(
+      {
+        id: isEmail._id,
+      },
+      process.env.RE_PASSWORD_JWT_SEC,
+      { expiresIn: 1000 * 60 * 60 }
+    );
+
+    return res.status(200).json({
+      message: "Access browser",
+      code: 0,
+      tokenChange: tokenChange,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const sendOTPtoNewEmail = async (req, res) => {
+  const email = req.body.email;
+  const type = req.body.type;
+  try {
+    if (!checkValidGmail(email)) {
+      return res.status(400).json({ message: "Email not valid", code: 2 });
+    }
+    try {
+      await OTP.findOneAndDelete({ email: email, type: type });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", code: 4 });
+    }
+    try {
+      const _OTP = await sendMail("Mã xác thực mail mới", email);
+      const newOTP = new OTP({
+        otp: _OTP,
+        email: email,
+        type: type,
+      });
+      await newOTP.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Send OTP Error", code: 3 });
+    }
+    return res.status(200).json({ message: "Access send OTP", code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const getAuthUser = async (req, res) => {
+  const userId = req.userId.id;
+  try {
+    const user = await User.findOne({ _id: userId }).select({
+      _id: 1,
+      username: 1,
+      img: 1,
+      displayname: 1,
+    });
+    if (!user) {
+      return res.status(404).json({ message: " User not exist", code: 3 });
+    }
+    return res.status(200).json({
+      message: "Success",
+      code: 0,
+      data: {
+        id: user._id,
+        username: user.username,
+        img: user.img,
+        displayName: user.displayname,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server Error", code: 4 });
+  }
+};
+
+// export const loginSocket = (io, socket) => {
+//   socket.on("login", async () => {
+//     socket.connect();
+//     console.log("a")
+//   });
+// };
+
+// export const logoutSocket = (io, socket) => {
+//   socket.on("logout", async () => {
+//     authenticateToken(socket, async (err) => {
+//       if (err) {
+//         return;
+//       }
+//       socket.disconnect();
+//     });
+//   });
+// };

@@ -3,12 +3,15 @@ import multer from "multer";
 import { verifyToken } from "../middleware/verifyToken.js";
 import {
   createPost,
+  createSharePost,
   deletePost,
   getPost,
   getPostByEvent,
+  getPostById,
   getPostByUser,
   getPostPublic,
   updatePost,
+  updateSharePost,
 } from "../controllers/post.controller.js";
 import { multerError } from "../utils/multerError.js";
 
@@ -42,6 +45,9 @@ router.put(
   verifyToken,
   updatePost
 );
+router.post("/share", verifyToken, createSharePost);
+router.put("/share", verifyToken, updateSharePost);
+router.get("/postId", getPostById)
 router.get("", verifyToken, getPost);
 router.get("/event",  getPostByEvent);
 router.get("/public", getPostPublic);

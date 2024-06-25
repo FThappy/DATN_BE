@@ -1,8 +1,8 @@
 import express from "express";
-import { changeImage, changeWall, getUser, getUserById } from "../controllers/user.controller.js";
+import { changeImage, changeWall, getUser, getUserById, searchUser, updateChangePassword, updateMail, updateUser, updateUsername } from "../controllers/user.controller.js";
 import multer from "multer";
 import { multerError } from "../utils/multerError.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { certainUserToken, verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -19,9 +19,13 @@ const upload_image = multer({
     }
   },
 });
+router.get("/search", verifyToken,searchUser);
 
 router.get("", getUserById);
-
+router.put("", verifyToken , updateUser);
+router.put("/username", verifyToken , certainUserToken , updateUsername);
+router.put("/mail", verifyToken, updateMail);
+router.put("/pass", verifyToken, certainUserToken, updateChangePassword);
 router.post("/wall/:userId",upload_image.single("file"),multerError, verifyToken ,changeWall)
 router.post(
   "/image/:userId",
@@ -31,7 +35,7 @@ router.post(
   changeImage
 );
 
-router.get("/:userId", upload_image.single("file"), getUser);
+router.get("/:userId", getUser);
 
 
 export default router;
