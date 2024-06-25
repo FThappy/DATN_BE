@@ -104,7 +104,7 @@ export const callbackZalopay = async (req, res) => {
       );
 
       const project = await Project.findOne({_id : projectId});
-      project.rise = project.rise + amount;
+      project.rise = project.rise ? project.rise + amount : amount;
       await project.save();
 
       const newTranscation = new Transcation({
