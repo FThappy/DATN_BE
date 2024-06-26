@@ -127,12 +127,12 @@ export const callbackZalopay = async (req, res) => {
       } else {
         const newNotification = new Notification({
           from: "server",
-          to: projectId.userId,
+          to: project.userId,
           content: projectId,
           type: "transcation",
         });
         await newNotification.save();
-        io.to(projectId.userId).emit("notification-req", newNotification);
+        io.to(project.userId).emit("notification-req", newNotification);
       }
       result.return_code = 1;
       result.return_message = "success";
