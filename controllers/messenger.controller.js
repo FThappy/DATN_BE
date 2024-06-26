@@ -367,3 +367,49 @@ export const readMessage = (io, socket) => {
     });
   });
 };
+
+export const getMessageRoomForUserIdSearch = async (req, res) => {
+  const qSearch = req.query.qSearch;
+  try {
+    const messageRoom = await MessageRoom.find({
+      listUser: req.userId.id,
+    });
+    if (!messageRoom) {
+      return res
+        .status(404)
+        .json({ message: "messageRoom not exist", code: 1 });
+    }
+    const lastMessage = messageRoom.map(async (item, index) => {
+      const lastMsg = await Message.findOne({ to: item._id }).sort({
+        createdAt: -1,
+      });
+      const user = await User.findOne({
+        _id: item.listUser.filter((item) => item !== req.userId.id),
+        $or: [
+          { username: { $regex: qSearch, $options: "i" } },
+          { displayname: { $regex: qSearch, $options: "i" } },
+        ],
+      }).select({
+        _id: 1,
+        username: 1,
+        img: 1,
+        displayname: 1,
+      });
+      if (user) {
+        return { ...item, lastMess: lastMsg, user: user };
+      }
+    });
+    const listData = await Promise.all(lastMessage);
+    const filter = listData.filter((value) => value !== undefined);
+
+    const data = filter.map((item) => ({
+      lastMess: item.lastMess,
+      room: item._doc,
+      user: item.user,
+    }));
+    return res.status(200).json({ message: "Success", data: data, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};

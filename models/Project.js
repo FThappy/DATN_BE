@@ -10,7 +10,7 @@ const ProjectSchema = new mongoose.Schema(
     content: { type: Object },
     filePath: { type: String },
     type: { type: Array },
-    rise: { type: Number },
+    rise: { type: Number, default: 0 },
     goal: { type: Number },
     cardNumber: {type : String},
     image: { type: Array },

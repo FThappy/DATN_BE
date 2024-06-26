@@ -309,3 +309,66 @@ export const projectSearch = async (req, res) => {
   }
 };
 
+export const getProjectByUserId = async (req, res) => {
+  const page = req.query.page;
+  try {
+    const skipProject = page * 3;
+    const listProject = await Project.find({ isDelete: false, isLock: false, userId : req.userId.id })
+      .sort({ _id: -1 })
+      .skip(skipProject)
+      .limit(3);
+
+    return res
+      .status(200)
+      .json({ message: "Success", data: listProject, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const projectSearchByOwner = async (req, res) => {
+  const { qSearch, qCity, qType, qSort, page } = req.body;
+
+  try {
+    const querySearch = {
+      isDelete: false,
+      isLock: false,
+      userId: req.userId.id,
+    };
+    if (qCity) {
+      querySearch.city = qCity;
+    }
+    if (qType && qType.length > 0) {
+      querySearch.type = { $all: qType };
+    }
+    if (qSearch) {
+      querySearch.projectName = {
+        $regex: qSearch,
+        $options: "i",
+      };
+    }
+    if (qSort === "new") {
+      const skipProject = page * 3;
+      const listProject = await Project.find(querySearch)
+        .sort({ _id: -1 })
+        .skip(skipProject)
+        .limit(3);
+      return res
+        .status(200)
+        .json({ message: "Success", data: listProject, code: 0 });
+    } else {
+      const skipProject = page * 3;
+      const listProject = await Project.find(querySearch)
+        .skip(skipProject)
+        .limit(3);
+      return res
+        .status(200)
+        .json({ message: "Success", data: listProject, code: 0 });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+

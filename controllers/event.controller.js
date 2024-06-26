@@ -3,6 +3,8 @@ import User from "../models/User.js";
 import { changeFile, deleteFile, uploadFile } from "../utils/file.js";
 import Event from "../models/Event.js";
 import Join from "../models/Join.js";
+import Notification from "../models/Notification.js";
+import { io } from "../index.js";
 
 const bucket = admin.storage().bucket();
 
@@ -212,13 +214,36 @@ export const createJoinEvent = async (req, res) => {
       userId: userId,
     });
     await newJoin.save();
-    return res
-      .status(200)
-      .json({ message: "Success", success: true, join: {
-        _id : newJoin._id,
-        itemId : newJoin.itemId,
-        userId : newJoin.userId
-      }, code: 0 });
+    res.status(200).json({
+      message: "Success",
+      success: true,
+      join: {
+        _id: newJoin._id,
+        itemId: newJoin.itemId,
+        userId: newJoin.userId,
+      },
+      code: 0,
+    });
+    const oldNotification = await Notification.findOne({
+      from: "server",
+      content: eventId,
+      type: "event",
+    });
+    if (oldNotification) {
+      oldNotification.isRead = false;
+      oldNotification.save();
+      io.to(event.userId).emit("update-notification", oldNotification);
+    } else {
+      const newNotification = new Notification({
+        from: "server",
+        to: event.userId,
+        content: eventId,
+        type: "event",
+      });
+      console.log("a")
+      await newNotification.save();
+      io.to(event.userId).emit("notification-req", newNotification);
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });
@@ -375,14 +400,12 @@ export const eventSearch = async (req, res) => {
         .sort({ _id: -1 })
         .skip(skipEvent)
         .limit(8);
-      return res
-        .status(200)
-        .json({
-          message: "Success",
-          listEvent: listEvent,
-          data: data,
-          code: 0,
-        });
+      return res.status(200).json({
+        message: "Success",
+        listEvent: listEvent,
+        data: data,
+        code: 0,
+      });
     } else {
       const skipEvent = page * NUMBER_EVENT;
       const listEvent = await Event.find(querySearch).skip(skipEvent).limit(8);
@@ -535,4 +558,3 @@ export const getTotalPageEventUserJoin = async (req, res) => {
     return res.status(500).json({ message: "Server error", code: 4 });
   }
 };
-

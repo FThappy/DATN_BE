@@ -88,28 +88,7 @@ const onConnection = (socket) => {
   deleteMessage(io, socket);
   readMessage(io, socket);
 };
-// io.use((socket, next) => {
-//   const handshake = socket.handshake;
 
-//   if (!handshake.headers.cookie){
-//     return socket.emit("error-global", {
-//       msg: "Chưa xác thực người dùng",
-//       code: 4,
-//     });}
-//   const rawToken = handshake.headers.cookie;
-//   const tmpToken = rawToken.split(";")[0];
-//   const token = tmpToken.split("=")[1]
-//   jwt.verify(token, process.env.JWT_SEC, async (err, id) => {
-//     if (err){
-//        socket.emit("error-global", {
-//         msg: "Hết phiên đăng nhập",
-//         code: 4,
-//       })
-//       next(new Error("not invalid token"));
-//       ;}
-//     next();
-//   });
-// });
 io.on("connection", onConnection);
 app.use(express.json());
 app.use(cookieParser());
@@ -130,3 +109,5 @@ app.use("/api/message", messageRoute);
 server.listen(5000, () => {
   console.log("Backend sever is running !");
 });
+
+export {io}

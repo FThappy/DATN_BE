@@ -63,7 +63,7 @@ export const createReqAddFriend = (io, socket) => {
             type: "addFriend",
           });
           await newNotification.save();
-          io.to(userId).emit("notification-req-friend", newNotification);
+          io.to(userId).emit("notification-req", newNotification);
         }
       } catch (error) {
         console.log(error);
@@ -217,7 +217,7 @@ export const acceptRequestAddFriend = async (io, socket) => {
             type: "acceptFriend",
           });
           await newNotification.save();
-          io.to(userId).emit("notification-req-friend", newNotification);
+          io.to(userId).emit("notification-req", newNotification);
         }
       } catch (error) {
         console.log(error);

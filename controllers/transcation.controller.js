@@ -4,6 +4,8 @@ import moment from "moment";
 import Project from "./../models/Project.js";
 import User from "../models/User.js";
 import Transcation from "../models/Transcation.js";
+import Notification from "../models/Notification.js";
+import { io } from "../index.js";
 
 const config = {
   app_id: "2553",
@@ -102,8 +104,7 @@ export const callbackZalopay = async (req, res) => {
         "update order's status = success where app_trans_id =",
         dataJson["app_trans_id"]
       );
-
-      const project = await Project.findOne({_id : projectId});
+      const project = await Project.findOne({ _id: projectId });
       project.rise = project.rise ? project.rise + amount : amount;
       await project.save();
 
@@ -113,6 +114,25 @@ export const callbackZalopay = async (req, res) => {
         amount: amount,
       });
       await newTranscation.save();
+      const oldNotification = await Notification.findOne({
+        from: "server",
+        content: projectId,
+        type: "transcation",
+      });
+      if (oldNotification) {
+        oldNotification.isRead = false;
+        oldNotification.save();
+        io.to(projectId.userId).emit("update-notification", oldNotification);
+      } else {
+        const newNotification = new Notification({
+          from: "server",
+          to: projectId.userId,
+          content: projectId,
+          type: "transcation",
+        });
+        await newNotification.save();
+        io.to(projectId.userId).emit("notification-req", newNotification);
+      }
       result.return_code = 1;
       result.return_message = "success";
     }
@@ -166,7 +186,7 @@ export const getTranscationByUserId = async (req, res) => {
 
 export const getTranscationByProjectId = async (req, res) => {
   const page = req.query.page;
-  const projectId = req.query.projectId
+  const projectId = req.query.projectId;
   try {
     const skipTranscation = page * NUMBER_TRANSCATION;
     const listTranscation = await Transcation.find({
@@ -178,6 +198,60 @@ export const getTranscationByProjectId = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Success", data: listTranscation, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+// Search
+export const transcationSearch = async (req, res) => {
+  const { qSearch, qDate, page } = req.query;
+
+  try {
+    const querySearch = {
+      userId: req.userId.id,
+    };
+    if (qDate !== "undefined" && qDate) {
+      const startOfDay = new Date(qDate);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(qDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      querySearch.createdAt = { $gte: startOfDay, $lte: endOfDay };
+    }
+    if (qSearch) {
+      const listProject = await Project.find({
+        projectName: {
+          $regex: qSearch,
+          $options: "i",
+        },
+      }).select({
+        _id: 1,
+      });
+      const search = listProject.map((item) => item._id.toString());
+      querySearch.projectId = { $in: search };
+    }
+    const skipTranscation = page * NUMBER_TRANSCATION;
+    const listTranscation = await Transcation.find(querySearch)
+      .sort({ _id: -1 })
+      .skip(skipTranscation)
+      .limit(10);
+    return res.status(200).json({
+      message: "Success",
+      listTranscation: listTranscation,
+      code: 0,
+    });
+    // } else {
+    //   const skipEvent = page * NUMBER_TRANSCATION;
+    //   const listEvent = await Transcation.find(querySearch).skip(skipEvent).limit(10);
+    //   return res.status(200).json({
+    //     message: "Success",
+    //     listEvent: listEvent,
+    //     code: 0,
+    //   });
+    // }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });

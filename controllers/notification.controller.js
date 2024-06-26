@@ -1,4 +1,6 @@
 import Notification from "../models/Notification.js";
+import Project from "../models/Project.js";
+import Transcation from "../models/Transcation.js";
 import User from "../models/User.js";
 import { authenticateToken } from "./comment.controller.js";
 
@@ -149,6 +151,50 @@ export const changeIsRead = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Success", data: notification, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+// Notifications
+export const getProjectByIdNotification = async (req, res) => {
+  const projectId = req.query.projectId;
+  try {
+    const project = await Project.findOne({ _id: projectId, isDelete: false });
+    if (!project) {
+      return res.status(404).json({ message: " Project not exist", code: 3 });
+    }
+    if (project.isLock) {
+      return res.status(200).json({ message: "Success", code: 9 });
+    }
+    const numberTrans = await Transcation.distinct("userId");
+    const lastTranscation = await Transcation.findOne({
+      projectId: projectId,
+    }).sort({ createdAt: -1 });
+    await Promise.all([numberTrans, lastTranscation]);
+    if (lastTranscation) {
+      const user = await User.findOne({ _id: lastTranscation.userId }).select({
+        _id: 1,
+        username: 1,
+        img: 1,
+        displayname: 1,
+      });
+      return res.status(200).json({
+        message: "Success",
+        code: 0,
+        project: project,
+        lastUser: user ? user : null,
+        total: numberTrans.length,
+      });
+    }
+    return res.status(200).json({
+      message: "Success",
+      code: 0,
+      project: project,
+      lastUser: null,
+      total: numberTrans.length,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });

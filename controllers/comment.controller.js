@@ -10,7 +10,28 @@ const NUMBER_COMMENT = 8;
 // io.use((socket, next) => {
 
 // });
+// io.use((socket, next) => {
+//   const handshake = socket.handshake;
 
+//   if (!handshake.headers.cookie){
+//     return socket.emit("error-global", {
+//       msg: "Chưa xác thực người dùng",
+//       code: 4,
+//     });}
+//   const rawToken = handshake.headers.cookie;
+//   const tmpToken = rawToken.split(";")[0];
+//   const token = tmpToken.split("=")[1]
+//   jwt.verify(token, process.env.JWT_SEC, async (err, id) => {
+//     if (err){
+//        socket.emit("error-global", {
+//         msg: "Hết phiên đăng nhập",
+//         code: 4,
+//       })
+//       next(new Error("not invalid token"));
+//       ;}
+//     next();
+//   });
+// });
 export const authenticateToken = (socket, next) => {
   const handshake = socket.handshake;
   // console.log(handshake.headers.cookie);
