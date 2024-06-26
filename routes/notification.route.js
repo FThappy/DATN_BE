@@ -14,7 +14,7 @@ router.post("", verifyToken);
 router.get("/id", verifyToken, getListNotificationById);
 router.get("/total", verifyToken, getTotalNotificationUnReadById);
 router.put("/isRead", verifyToken, changeIsRead);
-router.put("/trans", verifyToken, getProjectByIdNotification);
+router.get("/trans", verifyToken, getProjectByIdNotification);
 
 
 export default router;

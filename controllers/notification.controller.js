@@ -161,7 +161,7 @@ export const changeIsRead = async (req, res) => {
 export const getProjectByIdNotification = async (req, res) => {
   const projectId = req.query.projectId;
   try {
-    const project = await Project.findOne({ _id: projectId, isDelete: false });
+    const project = await Project.findOne({ _id: projectId, isDelete: false , isLock: false });
     if (!project) {
       return res.status(404).json({ message: " Project not exist", code: 3 });
     }
