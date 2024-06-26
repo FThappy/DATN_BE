@@ -114,6 +114,7 @@ export const callbackZalopay = async (req, res) => {
         amount: amount,
       });
       await newTranscation.save();
+      console.log("a")
       const oldNotification = await Notification.findOne({
         from: "server",
         content: projectId,
