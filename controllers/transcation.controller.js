@@ -123,7 +123,7 @@ export const callbackZalopay = async (req, res) => {
       if (oldNotification) {
         oldNotification.isRead = false;
         oldNotification.save();
-        io.to(projectId.userId).emit("update-notification", oldNotification);
+        io.to(project.userId).emit("update-notification", oldNotification);
       } else {
         const newNotification = new Notification({
           from: "server",
