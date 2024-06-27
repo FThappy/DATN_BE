@@ -145,7 +145,11 @@ export const logout = (req, res) => {
     if (!req.cookies.Authorization) {
       return res.status(500).json({ message: "Not Authenticated!", code: 4 });
     }
-    res.clearCookie("Authorization");
+    for (let cookie in req.cookies) {
+      if (req.cookies.hasOwnProperty(cookie)) {
+        res.clearCookie(cookie);
+      }
+    }
     return res.status(200).json({ message: "Logout Access", code: 0 });
   } catch (error) {
     console.log(error);

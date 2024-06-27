@@ -12,6 +12,7 @@ export const joinRoomNotification = (io, socket) => {
       if (err) {
         return;
       }
+      console.log("a")
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         if (!owner) {
