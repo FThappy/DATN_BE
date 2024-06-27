@@ -149,14 +149,16 @@ export const logout = (req, res) => {
     // Xóa tất cả các cookie
     for (let cookie in cookies) {
       if (cookies.hasOwnProperty(cookie)) {
+        console.log(res.host)
         res.clearCookie(cookie, {
           path: "/",
-          domain: req.hostname,
+          domain: "datn-be-zrcv.onrender",
           sameSite: "None",
           secure: true,
         });
       }
     }
+
     return res.status(200).json({ message: "Logout Access", code: 0 });
   } catch (error) {
     console.log(error);
