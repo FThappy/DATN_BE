@@ -3,7 +3,7 @@ import multer from "multer";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 import { multerError } from "../utils/multerError.js";
-import { createEvent, createJoinEvent, deleteEventById, deleteJoinEvent, deleteJoinEventByOwner, eventSearch, eventSearchOwner, getCountUserJoinEvent, getEvent, getEventById, getEventOwner, getEventUserJoin, getJoinById, getTotalPageEvent, getTotalPageEventOwner, getTotalPageEventUserJoin, getUserJoinEvent,  updateEvent } from "../controllers/event.controller.js";
+import { createEvent, createJoinEvent, deleteEventById, deleteJoinEvent, deleteJoinEventByOwner, eventSearch, eventSearchOwner, getCountUserJoinEvent, getEvent, getEventById, getEventForLike, getEventOwner, getEventUserJoin, getJoinById, getTotalPageEvent, getTotalPageEventOwner, getTotalPageEventUserJoin, getUserJoinEvent,  updateEvent } from "../controllers/event.controller.js";
 
 const router = express.Router();
 
@@ -35,12 +35,12 @@ router.put(
   verifyToken,
   updateEvent
 );
+router.get("/like", getEventForLike);
 router.get("/owner" ,verifyToken , getEventOwner)
 router.get("/owner/total-page",verifyToken , getTotalPageEventOwner)
 router.post("/owner/search",verifyToken , eventSearchOwner)
 router.get("/user-event",verifyToken , getEventUserJoin)
 router.get("/user-event/total-page", verifyToken , getTotalPageEventUserJoin)
-
 router.post("/search",eventSearch)
 router.post("/join", verifyToken, createJoinEvent);
 router.delete("/join", verifyToken, deleteJoinEvent);

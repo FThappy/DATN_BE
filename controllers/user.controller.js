@@ -10,6 +10,7 @@ import { checkValidGmail } from "../utils/utilsEmail.js";
 import { checkValidPhoneNumber } from "../utils/utilsPhone.js";
 import CryptoJS from "crypto-js";
 import bcrypt from "bcrypt";
+import Like from "../models/Like.js";
 export const getUserById = async (req, res) => {
   const userId = req.query.userId;
   try {
@@ -256,5 +257,33 @@ export const searchUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server Error", code: 4 });
+  }
+};
+
+
+export const getUserForLike = async (req, res) => {
+  const number = req.query.number;
+  try {
+    const listUser = await User.find({
+      isLock: false,
+    }).select({
+      _id: 1,
+      username: 1,
+      img: 1,
+      displayname: 1,
+    });;
+    const listUserAndLike = listUser.map(async (item, index) => {
+      const totalLike = await Like.countDocuments({ itemId: item._id });
+      return { user: item, totalLike: totalLike };
+    });
+    const listData = await Promise.all(listUserAndLike);
+    listData.sort((a, b) => b.totalLike - a.totalLike);
+
+    return res
+      .status(200)
+      .json({ message: "Success", data: listData.slice(0, number), code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
   }
 };

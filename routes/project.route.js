@@ -4,7 +4,7 @@ import multer from "multer";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 import { multerError } from "../utils/multerError.js";
-import { createProject, deleteProjectById, getProject, getProjectById, getProjectByUserId, projectSearch, projectSearchByOwner, updateProject } from "../controllers/project.controller.js";
+import { createProject, deleteProjectById, getProject, getProjectById, getProjectByUserId, getProjectForLike, projectSearch, projectSearchByOwner, updateProject } from "../controllers/project.controller.js";
 
 const router = express.Router();
 
@@ -40,8 +40,9 @@ router.put(
   verifyToken,
   updateProject
 );
-router.delete("", verifyToken, deleteProjectById);
 router.get("", getProject);
+router.delete("", verifyToken, deleteProjectById);
+router.get("/like", getProjectForLike);
 router.get("/owner",verifyToken ,getProjectByUserId);
 router.post("/search", projectSearch);
 router.post("/search/owner",verifyToken ,projectSearchByOwner);

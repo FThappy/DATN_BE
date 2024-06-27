@@ -3,6 +3,7 @@ import Project from "../models/Project.js";
 import admin from "../config/firebase.js";
 import { changeFile, deleteFile, uploadFile } from "../utils/file.js";
 import { checkValidCard } from "../utils/utilsCard.js";
+import Like from "../models/Like.js";
 
 const bucket = admin.storage().bucket();
 
@@ -235,7 +236,10 @@ export const getProjectById = async (req, res) => {
 export const deleteProjectById = async (req, res) => {
   const projectId = req.query.projectId;
   try {
-    const project = await Project.findOne({ _id: projectId, userId: req.userId.id });
+    const project = await Project.findOne({
+      _id: projectId,
+      userId: req.userId.id,
+    });
     if (!project) {
       return res.status(404).json({ msg: "Not found event", code: 3 });
     } else {
@@ -276,7 +280,7 @@ export const projectSearch = async (req, res) => {
     if (qCity) {
       querySearch.city = qCity;
     }
-    if (qType && qType.length >0) {
+    if (qType && qType.length > 0) {
       querySearch.type = { $all: qType };
     }
     if (qSearch) {
@@ -313,7 +317,11 @@ export const getProjectByUserId = async (req, res) => {
   const page = req.query.page;
   try {
     const skipProject = page * 3;
-    const listProject = await Project.find({ isDelete: false, isLock: false, userId : req.userId.id })
+    const listProject = await Project.find({
+      isDelete: false,
+      isLock: false,
+      userId: req.userId.id,
+    })
       .sort({ _id: -1 })
       .skip(skipProject)
       .limit(3);
@@ -372,3 +380,25 @@ export const projectSearchByOwner = async (req, res) => {
   }
 };
 
+export const getProjectForLike = async (req, res) => {
+  const number = req.query.number;
+  try {
+    const listProject = await Project.find({
+      isDelete: false,
+      isLock: false,
+      timeEnd: { $gte: new Date() },
+    });
+    const listProjectAndLike = listProject.map(async (item, index) => {
+      const totalLike = await Like.countDocuments({ itemId: item._id });
+      return { project: item, totalLike: totalLike };
+    });
+    const listData = await Promise.all(listProjectAndLike);
+    listData.sort((a, b) => b.totalLike - a.totalLike);
+    return res
+      .status(200)
+      .json({ message: "Success", data: listData.slice(0,number), code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};

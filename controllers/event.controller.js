@@ -5,6 +5,7 @@ import Event from "../models/Event.js";
 import Join from "../models/Join.js";
 import Notification from "../models/Notification.js";
 import { io } from "../index.js";
+import Like from "../models/Like.js";
 
 const bucket = admin.storage().bucket();
 
@@ -553,6 +554,31 @@ export const getTotalPageEventUserJoin = async (req, res) => {
     const totalPages = Math.ceil(totalJoin / 6);
     const data = Array.from({ length: totalPages }, (_, i) => i + 1);
     return res.status(200).json({ message: "Success", data: data, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+
+export const getEventForLike = async (req, res) => {
+  const number = req.query.number;
+  try {
+    const listEvent = await Event.find({
+      isDelete: false,
+      isLock: false,
+    });
+    const listEventAndLike = listEvent.map(async (item, index) => {
+      const totalLike = await Like.countDocuments({ itemId: item._id });
+      return { event: item, totalLike: totalLike };
+    });
+    const listData = await Promise.all(listEventAndLike);
+    listData.sort((a, b) => b.totalLike - a.totalLike);
+
+
+    return res
+      .status(200)
+      .json({ message: "Success", data: listData.slice(0, number), code: 0 });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });
