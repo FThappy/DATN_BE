@@ -22,6 +22,8 @@ export const createProject = async (req, res) => {
   const fileContent = req.files.fileContent;
   const content = req.body.content;
   const contentJSON = JSON.parse(content);
+  const tmpImgJSON = req.body.tmpImg;
+  const tmpImg = JSON.parse(tmpImgJSON);
   const time = new Date().getTime();
 
   try {
@@ -56,9 +58,13 @@ export const createProject = async (req, res) => {
           req.userId.id,
           "project"
         );
-        contentJSON.content.filter((item) => item.type === "image")[
-          index
-        ].attrs.src = url;
+        contentJSON.content
+          .filter((item) => item.type === "image")
+          .map((item) => {
+            if (item.attrs.src === tmpImg[index].attrs.src) {
+              item.attrs.src = url;
+            }
+          });
       });
       const urlFileContent = await Promise.all(promisesContent);
     }
@@ -111,6 +117,11 @@ export const updateProject = async (req, res) => {
   const projectId = req.query.projectId;
   const content = req.body.content;
   const contentJSON = JSON.parse(content);
+  const tmpImgJSON = req.body.tmpImg;
+  const tmpImg = JSON.parse(tmpImgJSON);
+  const presentImg = tmpImg.filter(
+    (item) => item.type === "image" && item.attrs.src.startsWith("blob")
+  );
   try {
     const project = await Project.findOne({
       _id: projectId,
@@ -155,9 +166,15 @@ export const updateProject = async (req, res) => {
           project.filePath,
           project.__v + 1
         );
-        contentJSON.content.filter(
-          (item) => item.type === "image" && item.attrs.src.startsWith("blob")
-        )[index].attrs.src = url;
+        contentJSON.content
+          .filter(
+            (item) => item.type === "image" && item.attrs.src.startsWith("blob")
+          )
+          .map((item) => {
+            if (item.attrs.src === presentImg[index].attrs.src) {
+              item.attrs.src = url;
+            }
+          });
       });
       const urlFile = await Promise.all(promisesContent);
     }
@@ -396,7 +413,7 @@ export const getProjectForLike = async (req, res) => {
     listData.sort((a, b) => b.totalLike - a.totalLike);
     return res
       .status(200)
-      .json({ message: "Success", data: listData.slice(0,number), code: 0 });
+      .json({ message: "Success", data: listData.slice(0, number), code: 0 });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });
