@@ -34,7 +34,7 @@ const NUMBER_COMMENT = 8;
 // });
 export const authenticateToken = (socket, next) => {
   const handshake = socket.handshake;
-  console.log(handshake.headers.cookie);
+  // console.log(handshake.headers.cookie);
   if (!handshake.headers.cookie) {
     return socket.emit("error-global", {
       msg: "Chưa xác thực người dùng",
