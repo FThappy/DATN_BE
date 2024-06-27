@@ -140,18 +140,25 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
   try {
     if (!req.cookies.Authorization) {
       return res.status(500).json({ message: "Not Authenticated!", code: 4 });
     }
-     res.clearCookie("Authorization", {
-       path: "/",
-       domain: "datn-be-zrcv.onrender.com",
-       sameSite: "None",
-       secure: true,
-     });
-      // res.clearCookie("Authorization");
+
+    res.clearCookie("Authorization", {
+      path: "/",
+      domain: "datn-be-zrcv.onrender.com",
+      sameSite: "None",
+      secure: true,
+    });
+    res.clearCookie("Authorization");
+    res.cookie("Authorization", "deleted", {
+      httpOnly: true,
+      secure: true, // https
+      sameSite: "None",
+    });
+    console.log(res);
     return res.status(200).json({ message: "Logout Access", code: 0 });
   } catch (error) {
     console.log(error);
