@@ -7,13 +7,9 @@ import { authenticateToken } from "./comment.controller.js";
 const NUMBER_NOTIFICATION = 8;
 
 export const joinRoomNotification = (io, socket) => {
-  socket.on("join-private-notification", async () => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
+  socket.on("join-private-notification", async (userId) => {
       try {
-        const owner = await User.findOne({ _id: socket.user.id });
+        const owner = await User.findOne({ _id: userId });
         if (!owner) {
           socket.emit("error-notification", {
             message: "Không đủ thẩm quyền",
@@ -22,15 +18,14 @@ export const joinRoomNotification = (io, socket) => {
           return;
         }
         const rooms = Array.from(socket.rooms);
-        if (!rooms.includes(socket.user.id)) {
-          socket.join(socket.user.id);
+        if (!rooms.includes(userId)) {
+          socket.join(userId);
         }
       } catch (error) {
         console.log(error);
         socket.emit("error-notification", { message: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const getListNotificationById = async (req, res) => {

@@ -30,7 +30,7 @@ export const zalopay = async (req, res) => {
     }
     const embed_data = {
       // sau khi hoàn tất thanh toán sẽ đi vào link này (thường là link web thanh toán thành công của mình)
-      redirecturl: "http://localhost:3000",
+      redirecturl: "https://datn-fe-3xyo.onrender.com",
       projectId: req.body.projectId,
       userId: req.userId.id,
     };

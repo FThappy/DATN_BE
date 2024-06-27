@@ -158,7 +158,6 @@ export const logout = async (req, res) => {
       secure: true, // https
       sameSite: "None",
     });
-    console.log(res);
     return res.status(200).json({ message: "Logout Access", code: 0 });
   } catch (error) {
     console.log(error);
