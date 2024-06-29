@@ -341,13 +341,13 @@ export const getMessageRoomForUserId = async (req, res) => {
 };
 
 export const readMessage = (io, socket) => {
-  socket.on("read-message", async (roomId, messageId) => {
+  socket.on("read-message", async (roomId, messageId, userId) => {
     authenticateToken(socket, async (err) => {
       if (err) {
         return;
       }
       try {
-        const owner = await User.findOne({ _id: socket.user.id });
+        const owner = await User.findOne({ _id: userId });
         if (!owner) {
           return socket.emit("error-message", {
             msg: "Message not found",
@@ -363,8 +363,8 @@ export const readMessage = (io, socket) => {
             code: 3,
           });
         }
-        if (!message.isRead.includes(socket.user.id)) {
-          message.isRead = [...message.isRead, socket.user.id];
+        if (!message.isRead.includes(userId)) {
+          message.isRead = [...message.isRead, userId];
         }
         await message.save();
         const rooms = Array.from(socket.rooms);
@@ -548,7 +548,7 @@ export const sendMessFirst = async (req, res) => {
       lastMess: newMessage,
       user: owner,
     });
-    io.to(owner._id).emit("new-card", {
+    io.to(req.userId.id).emit("new-card", {
       room: newMessageRoom,
       lastMess: newMessage,
       user: user,

@@ -52,8 +52,8 @@ mongoose
 
 app.use(
   cors({
-    // origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn"],
-    origin: ["https://datn-fe-3xyo.onrender.com", "https://qcgateway.zalopay.vn"],
+    origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn"],
+    // origin: ["https://datn-fe-3xyo.onrender.com", "https://qcgateway.zalopay.vn"],
     credentials: true,
   })
 );
@@ -61,8 +61,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cookie: true,
   cors: {
-    // origin: "http://localhost:3000",
-    origin: "https://datn-fe-3xyo.onrender.com",
+    origin: "http://localhost:3000",
+    // origin: "https://datn-fe-3xyo.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
