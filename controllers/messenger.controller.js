@@ -1,6 +1,8 @@
+import { io } from "../index.js";
 import Message from "../models/Message.js";
 import MessageRoom from "../models/MessageRoom.js";
 import User from "../models/User.js";
+import { deleteFile, uploadFile, uploadFileMessage } from "../utils/file.js";
 import { authenticateToken } from "./comment.controller.js";
 
 const NUMBER_MESSAGE = 15;
@@ -230,6 +232,15 @@ export const deleteMessage = (io, socket) => {
             code: 3,
           });
         }
+        if ((message.img.length > 0)) {
+          const promise = message.img.map(async (urlImageRemove, index) => {
+            const fileUrl = urlImageRemove.split("/");
+            const originalName = fileUrl[5].split("?")[0];
+            const path = fileUrl[4] + "/" + originalName;
+            await deleteFile(path);
+          });
+          await Promise.all(promise);
+        }
         await Message.findOneAndDelete({
           _id: messageId,
           from: socket.user.id,
@@ -352,7 +363,9 @@ export const readMessage = (io, socket) => {
             code: 3,
           });
         }
-        message.isRead = [...message.isRead, socket.user.id];
+        if (!message.isRead.includes(socket.user.id)) {
+          message.isRead = [...message.isRead, socket.user.id];
+        }
         await message.save();
         const rooms = Array.from(socket.rooms);
         if (!rooms.includes(roomId)) {
@@ -408,6 +421,138 @@ export const getMessageRoomForUserIdSearch = async (req, res) => {
       user: item.user,
     }));
     return res.status(200).json({ message: "Success", data: data, code: 0 });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const sendMess = async (req, res) => {
+  const roomId = req.body.roomId;
+  const content = req.body.content;
+  const file = req.files;
+  const time = new Date().getTime();
+
+  try {
+    if (!content && file.length <= 0) {
+      return res.status(400).json({ message: "Không có thông tin", code: 8 });
+    }
+    const owner = await User.findOne({ _id: req.userId.id });
+    await Promise.all([owner]);
+    if (!owner) {
+      return res
+        .status(404)
+        .json({ message: "Người dùng không tồn tại", code: 9 });
+    }
+    const room = await MessageRoom.findOne({ _id: roomId });
+    if (!room) {
+      return res
+        .status(404)
+        .json({ message: "Không có phòng chat này", code: 10 });
+    }
+    const promises = file.map(async (file, index) => {
+      const url = await uploadFileMessage(
+        file,
+        index,
+        time,
+        req.userId.id,
+        "room"
+      );
+      return url;
+    });
+    const urlFile = await Promise.all(promises);
+
+    const newMessage = new Message({
+      from: req.userId.id,
+      to: roomId,
+      content: content ? content : "",
+      isRead: [req.userId.id],
+      img: urlFile,
+      filePath: `room-${roomId}-`,
+    });
+    await newMessage.save();
+    io.to(roomId).emit("send-message", newMessage, roomId);
+    // Notify other users in the room
+    room.listUser.forEach((userId) => {
+      io.to(userId).emit("new-last", newMessage);
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", code: 4 });
+  }
+};
+
+export const sendMessFirst = async (req, res) => {
+  const roomId = req.body.roomId;
+  const content = req.body.content;
+  const file = req.files;
+  const time = new Date().getTime();
+
+  try {
+    if (!content && file.length <= 0) {
+      return res.status(400).json({ message: "Không có thông tin", code: 8 });
+    }
+    const owner = await User.findOne({ _id: req.userId.id }).select({
+      _id: 1,
+      username: 1,
+      img: 1,
+      displayname: 1,
+    });
+    if (!owner) {
+      return res
+        .status(404)
+        .json({ message: "Người dùng không tồn tại", code: 9 });
+    }
+    const user = await User.findOne({ _id: roomId }).select({
+      _id: 1,
+      username: 1,
+      img: 1,
+      displayname: 1,
+    });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "Người dùng không tồn tại", code: 9 });
+    }
+    const newMessageRoom = new MessageRoom({
+      listUser: [req.userId.id, roomId],
+      type: "single",
+    });
+    await newMessageRoom.save();
+    const promises = file.map(async (file, index) => {
+      const url = await uploadFileMessage(
+        file,
+        index,
+        time,
+        req.userId.id,
+        "room"
+      );
+      return url;
+    });
+    const urlFile = await Promise.all(promises);
+
+    const newMessage = new Message({
+      from: req.userId.id,
+      to: newMessageRoom._id.toString(),
+      content: content ? content : "",
+      isRead: [req.userId.id],
+      img: urlFile,
+      filePath: `room-${newMessageRoom._id.toString()}-`,
+    });
+
+    await newMessage.save();
+    io.to(req.userId.id).emit("new-room", newMessageRoom, newMessage, roomId);
+    io.to(roomId).emit("new-room", newMessageRoom, newMessage, roomId);
+    io.to(roomId).emit("new-card", {
+      room: newMessageRoom,
+      lastMess: newMessage,
+      user: owner,
+    });
+    io.to(owner._id).emit("new-card", {
+      room: newMessageRoom,
+      lastMess: newMessage,
+      user: user,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", code: 4 });

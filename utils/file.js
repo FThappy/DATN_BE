@@ -3,7 +3,7 @@ import admin from "../config/firebase.js";
 const bucket = admin.storage().bucket();
 
 export const uploadFile = async (file, index, time, userId , type) => {
-  console.log(file);
+  // console.log(file);
   try {
     const remoteFilePath = type + "-"+
       userId +
@@ -12,7 +12,7 @@ export const uploadFile = async (file, index, time, userId , type) => {
       `/${index}${0}` +
       file.originalname;
 
-    console.log(remoteFilePath);
+    // console.log(remoteFilePath);
 
     const blob = bucket.file(remoteFilePath);
     const blobStream = blob.createWriteStream({
@@ -39,7 +39,7 @@ export const uploadFile = async (file, index, time, userId , type) => {
               reject({ msg: "Lỗi khi lấy URL tải xuống", code: 4 });
             } else {
               console.log("Tệp đã được tải lên thành công.");
-              console.log("URL của tệp đã tải lên:", url);
+              // console.log("URL của tệp đã tải lên:", url);
               /** Sau khi có url của tệp, resolve Promise với URL */
               resolve(url);
             }
@@ -161,6 +161,57 @@ export const uploadProfileImage = async (file, path) => {
             } else {
               console.log("Tệp đã được tải lên thành công.");
               console.log("URL của tệp đã tải lên:", url);
+              /** Sau khi có url của tệp, resolve Promise với URL */
+              resolve(url);
+            }
+          }
+        );
+      });
+
+      blobStream.end(file.buffer);
+    });
+    return url;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+
+export const uploadFileMessage = async (file, index, time, userId, type) => {
+  // console.log(file);
+  try {
+    const remoteFilePath =
+      type + "-" + userId + "-" + `/${index}${0}` + file.originalname + time;
+
+    // console.log(remoteFilePath);
+
+    const blob = bucket.file(remoteFilePath);
+    const blobStream = blob.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+    const url = await new Promise((resolve, reject) => {
+      blobStream.on("error", (error) => {
+        console.error("Lỗi khi tải lên tệp:", error);
+        reject({ msg: "Lỗi khi tải lên tệp", code: 4 });
+      });
+
+      blobStream.on("finish", () => {
+        /** Lấy URL tải xuống */
+        blob.getSignedUrl(
+          {
+            action: "read",
+            expires: "01-01-2030",
+          },
+          async (err, url) => {
+            if (err) {
+              console.error("Lỗi khi lấy URL tải xuống:", err);
+              reject({ msg: "Lỗi khi lấy URL tải xuống", code: 4 });
+            } else {
+              console.log("Tệp đã được tải lên thành công.");
+              // console.log("URL của tệp đã tải lên:", url);
               /** Sau khi có url của tệp, resolve Promise với URL */
               resolve(url);
             }
