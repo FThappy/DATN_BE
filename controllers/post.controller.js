@@ -100,7 +100,15 @@ export const getPost = async (req, res) => {
   const page = req.query.page;
   try {
     const skipPost = page * NUMBER_POST;
-    const listPost = await Post.find({ isDelete: false, isLock: false })
+    const listPost = await Post.find({
+      isDelete: false,
+      isLock: false,
+      $or: [
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+        { organizationId: "" },
+      ],
+    })
       .sort({ _id: -1 })
       .skip(skipPost)
       .limit(5);
@@ -120,6 +128,11 @@ export const getPostPublic = async (req, res) => {
       privacy: "global",
       isDelete: false,
       isLock: false,
+      $or: [
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+        { organizationId: "" },
+      ],
     })
       .sort({ _id: -1 })
       .skip(skipPost)

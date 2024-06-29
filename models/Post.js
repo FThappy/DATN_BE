@@ -5,6 +5,7 @@ const PostSchema = new mongoose.Schema(
     userId: { type: String, required: true },
     document: { type: String },
     img: { type: Array },
+    organizationId: { type: String },
     filePath: { type: String },
     privacy: {
       type: String,
@@ -21,7 +22,7 @@ const PostSchema = new mongoose.Schema(
     typeShare: {
       type: String,
     },
-    linkItem : { type: String}
+    linkItem: { type: String },
   },
   { timestamps: true }
 );
