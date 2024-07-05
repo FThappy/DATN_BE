@@ -14,6 +14,7 @@ import friendRoute from "./routes/friend.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import likeRoute from "./routes/like.route.js";
 import messageRoute from "./routes/message.route.js";
+import adminAuthRoute from "./admin/routes/auth.route.js"
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
@@ -52,7 +53,7 @@ mongoose
 
 app.use(
   cors({
-    // origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn"],
+    // origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn" , "http://localhost:5173"],
     origin: ["https://datn-fe-3xyo.onrender.com", "https://qcgateway.zalopay.vn"],
     credentials: true,
   })
@@ -62,7 +63,7 @@ const io = new Server(server, {
   cookie: true,
   cors: {
     origin: "http://localhost:3000",
-    // origin: "https://datn-fe-3xyo.onrender.com",
+    origin: "https://datn-fe-3xyo.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -110,6 +111,8 @@ app.use("/api/friend", friendRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/like", likeRoute);
 app.use("/api/message", messageRoute);
+app.use("/api/admin/auth", adminAuthRoute);
+
 
 
 server.listen(5000, () => {

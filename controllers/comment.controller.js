@@ -52,10 +52,10 @@ export const authenticateToken = (socket, next) => {
   // console.log(token);
   jwt.verify(token, process.env.JWT_SEC, async (err, id) => {
     if (err) {
-      socket.emit("error-global", {
-        msg: "Hết phiên đăng nhập",
-        code: 4,
-      });
+      // socket.emit("error-global", {
+      //   msg: "Hết phiên đăng nhập",
+      //   code: 4,
+      // });
     }
     socket.user = id;
     next();
