@@ -14,7 +14,6 @@ import friendRoute from "./routes/friend.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import likeRoute from "./routes/like.route.js";
 import messageRoute from "./routes/message.route.js";
-import adminAuthRoute from "./admin/routes/auth.route.js"
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
@@ -41,6 +40,8 @@ import {
   repComment,
 } from "./controllers/repComment.controller.js";
 import { deleteMessage, joinMessRoom, readMessage, sendFirstMessage, sendMessage } from "./controllers/messenger.controller.js";
+import {socketAuthMiddleware} from "./middleware/verifyToken.js";
+
 const app = express();
 dotenv.config();
 
@@ -62,43 +63,50 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cookie: true,
   cors: {
-    // origin: "http://localhost:3000",
     origin: "https://datn-fe-3xyo.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
 });
+io.use(socketAuthMiddleware);
 const firstConnect = (io, socket) => {
   socket.on("first-connect", () => {
     console.log("connect socket")
   });
 };
 const onConnection = (socket) => {
-  joniRoom(io, socket);
-  sendComment(io, socket);
-  loadMoreComment(io, socket);
-  changeComment(io, socket);
-  deleteComment(io, socket);
-  leaveRoom(io, socket);
-  repComment(io, socket);
-  loadMoreRepComment(io, socket);
-  deleteRepComment(io, socket);
-  changeRepComment(io, socket);
-  createReqAddFriend(io, socket);
-  acceptRequestAddFriend(io, socket);
-  joinRoomNotification(io, socket);
-  removeNotification(io, socket);
-  sendFirstMessage(io, socket);
-  joinMessRoom(io, socket);
-  sendMessage(io, socket);
-  deleteMessage(io, socket);
-  readMessage(io, socket);
-  firstConnect(io, socket);
+    joniRoom(io, socket);
+    sendComment(io, socket);
+    loadMoreComment(io, socket);
+    changeComment(io, socket);
+    deleteComment(io, socket);
+    leaveRoom(io, socket);
+    repComment(io, socket);
+    loadMoreRepComment(io, socket);
+    deleteRepComment(io, socket);
+    changeRepComment(io, socket);
+    createReqAddFriend(io, socket);
+    acceptRequestAddFriend(io, socket);
+    joinRoomNotification(io, socket);
+    removeNotification(io, socket);
+    sendFirstMessage(io, socket);
+    joinMessRoom(io, socket);
+    sendMessage(io, socket);
+    deleteMessage(io, socket);
+    readMessage(io, socket);
+    firstConnect(io, socket);
 };
 
-io.on("connection", onConnection);
+io.on("connection", (socket) => {
+    console.log(`🔌 Client connected: ${socket.id}`);
+    onConnection(socket)
+    socket.on("disconnect", () => {
+        console.log(`❌ Client disconnected: ${socket.id}`);
+    });
+});
 app.use(express.json());
 app.use(cookieParser());
+
 app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
 app.use("/api/user", userRoute);
@@ -111,7 +119,6 @@ app.use("/api/friend", friendRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/like", likeRoute);
 app.use("/api/message", messageRoute);
-app.use("/api/admin/auth", adminAuthRoute);
 
 
 

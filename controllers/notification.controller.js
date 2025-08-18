@@ -2,11 +2,10 @@ import Notification from "../models/Notification.js";
 import Project from "../models/Project.js";
 import Transcation from "../models/Transcation.js";
 import User from "../models/User.js";
-import { authenticateToken } from "./comment.controller.js";
 
 const NUMBER_NOTIFICATION = 8;
 
-export const joinRoomNotification = (io, socket) => {
+export const joinRoomNotification = (_, socket) => {
   socket.on("join-private-notification", async (userId) => {
       try {
         const owner = await User.findOne({ _id: userId });
@@ -65,10 +64,6 @@ export const getTotalNotificationUnReadById = async (req, res) => {
 
 export const removeNotification = (io, socket) => {
   socket.on("remove-notification", async (userId, type) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         if (!owner) {
@@ -122,7 +117,6 @@ export const removeNotification = (io, socket) => {
         socket.emit("error-notification", { message: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const changeIsRead = async (req, res) => {
@@ -152,7 +146,6 @@ export const changeIsRead = async (req, res) => {
   }
 };
 
-// Notifications
 export const getProjectByIdNotification = async (req, res) => {
   const projectId = req.query.projectId;
   try {

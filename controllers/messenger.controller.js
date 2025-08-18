@@ -3,7 +3,6 @@ import Message from "../models/Message.js";
 import MessageRoom from "../models/MessageRoom.js";
 import User from "../models/User.js";
 import { deleteFile, uploadFile, uploadFileMessage } from "../utils/file.js";
-import { authenticateToken } from "./comment.controller.js";
 
 const NUMBER_MESSAGE = 15;
 
@@ -34,10 +33,6 @@ export const checkRoom = async (req, res) => {
 
 export const joinMessRoom = (io, socket) => {
   socket.on("join-messageRoom", async (roomId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         socket.join(roomId);
       } catch (error) {
@@ -45,15 +40,11 @@ export const joinMessRoom = (io, socket) => {
         socket.emit("error-message", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const sendFirstMessage = (io, socket) => {
   socket.on("send-first-message", async (roomId, content) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
+
       try {
         const owner = await User.findOne({ _id: socket.user.id }).select({
           _id: 1,
@@ -113,15 +104,11 @@ export const sendFirstMessage = (io, socket) => {
         socket.emit("error-message", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const sendMessage = (io, socket) => {
   socket.on("send-message", async (roomId, content) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
+
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         await Promise.all([owner]);
@@ -161,7 +148,6 @@ export const sendMessage = (io, socket) => {
         socket.emit("error-message", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const getMessageForRoom = async (req, res) => {
@@ -196,10 +182,6 @@ export const getMessageForRoom = async (req, res) => {
 };
 export const deleteMessage = (io, socket) => {
   socket.on("delete-message", async (roomId, messageId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         await Promise.all([owner]);
@@ -275,7 +257,6 @@ export const deleteMessage = (io, socket) => {
         socket.emit("error-message", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 export const getMessageRoomForUserId = async (req, res) => {
   try {
@@ -342,10 +323,7 @@ export const getMessageRoomForUserId = async (req, res) => {
 
 export const readMessage = (io, socket) => {
   socket.on("read-message", async (roomId, messageId, userId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
+
       try {
         const owner = await User.findOne({ _id: userId });
         if (!owner) {
@@ -378,7 +356,6 @@ export const readMessage = (io, socket) => {
         socket.emit("error-message", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const getMessageRoomForUserIdSearch = async (req, res) => {

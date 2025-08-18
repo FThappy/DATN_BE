@@ -1,16 +1,11 @@
 import Comment from "../models/Comment.js";
 import RepComment from "../models/RepComment.js";
 import User from "../models/User.js";
-import { authenticateToken } from "./comment.controller.js";
 
 // REP-COMMENT
 
 export const repComment = (io, socket) => {
   socket.on("rep-comment", async (itemId, comment, toUserId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const commentFarther = await Comment.findOne({ _id: itemId });
         if (!commentFarther) {
@@ -49,18 +44,12 @@ export const repComment = (io, socket) => {
         socket.emit("error-comment", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const loadMoreRepComment = (io, socket) => {
   socket.on("load-repcomment-more", async (itemId, page, skipItem) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       const rooms = Array.from(socket.rooms);
       if (!rooms.includes(itemId)) {
-        console.log("abc");
         socket.join(itemId);
       }
       try {
@@ -79,15 +68,10 @@ export const loadMoreRepComment = (io, socket) => {
         socket.emit("error-comment", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const changeRepComment = (io, socket) => {
   socket.on("change-rep-comment", async (commentId, newDetail, itemId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const user = await User.findOne({ _id: socket.user.id });
         if (!user) {
@@ -115,14 +99,9 @@ export const changeRepComment = (io, socket) => {
         socket.emit("error-comment", { msg: "Server error", code: 4 });
       }
     });
-  });
 };
 export const deleteRepComment = (io, socket) => {
   socket.on("delete-rep-comment", async (commentId, commentFatherId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const user = await User.findOne({ _id: socket.user.id });
         if (!user) {
@@ -158,5 +137,4 @@ export const deleteRepComment = (io, socket) => {
         socket.emit("error-comment", { msg: "Server error", code: 4 });
       }
     });
-  });
 };

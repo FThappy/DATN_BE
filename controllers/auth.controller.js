@@ -452,20 +452,4 @@ export const getAuthUser = async (req, res) => {
   }
 };
 
-// export const loginSocket = (io, socket) => {
-//   socket.on("login", async () => {
-//     socket.connect();
-//     console.log("a")
-//   });
-// };
 
-// export const logoutSocket = (io, socket) => {
-//   socket.on("logout", async () => {
-//     authenticateToken(socket, async (err) => {
-//       if (err) {
-//         return;
-//       }
-//       socket.disconnect();
-//     });
-//   });
-// };

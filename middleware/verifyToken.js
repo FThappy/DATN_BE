@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-
+import cookie from "cookie";
 export const verifyToken = (req, res, next) => {
   const token = req.cookies.Authorization;
   if (!token)
@@ -27,5 +27,24 @@ export const certainUserToken = (req, res, next) => {
     });
   } else {
     return res.status(401).json({ msg: "Token is not valid", code: 3 });
+  }
+};
+export const socketAuthMiddleware = (socket, next) => {
+  try {
+    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const token = cookies.Authorization;
+    if (!token) {
+      return next(new Error("Unauthorized: No token"));
+    }
+    const jwtToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+    jwt.verify(jwtToken, process.env.JWT_SEC, async (err, id) => {
+      if (err) {
+        return next(new Error("Unauthorized: No token"));
+      }
+      socket.user = id;
+      next();
+    });
+  } catch (err) {
+    return next(new Error("Unauthorized: Invalid token"));
   }
 };

@@ -2,14 +2,9 @@ import Friend from "../models/Friend.js";
 import Notification from "../models/Notification.js";
 import RequestAddFriend from "../models/RequestAddFriend.js";
 import User from "../models/User.js";
-import { authenticateToken } from "./comment.controller.js";
 
 export const createReqAddFriend = (io, socket) => {
   socket.on("send-req-add-friend", async (userId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         if (!owner) {
@@ -70,7 +65,6 @@ export const createReqAddFriend = (io, socket) => {
         socket.emit("error-req", { message: "Server error", code: 4 });
       }
     });
-  });
 };
 
 export const checkReqAddFriend = async (req, res) => {
@@ -143,10 +137,6 @@ export const rejectaAddFriend = async (req, res) => {
 
 export const acceptRequestAddFriend = async (io, socket) => {
   socket.on("accept-req-friend", async (userId) => {
-    authenticateToken(socket, async (err) => {
-      if (err) {
-        return;
-      }
       try {
         const owner = await User.findOne({ _id: socket.user.id });
         const user = await User.findOne({ _id: userId });
@@ -224,7 +214,6 @@ export const acceptRequestAddFriend = async (io, socket) => {
         socket.emit("error-req", { message: "Server error", code: 4 });
       }
     });
-  });
 };
 export const refuseRequestAddFriend = async (req, res) => {
   const userId = req.query.userId;
