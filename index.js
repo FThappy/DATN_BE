@@ -54,7 +54,7 @@ mongoose
 
 app.use(
   cors({
-    // origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn" , "http://localhost:5173"],
+    // origin: ["http://localhost:3000", "https://qcgateway.zalopay.vn"],
     origin: ["https://datn-fe-3xyo.onrender.com", "https://qcgateway.zalopay.vn"],
     credentials: true,
   })
