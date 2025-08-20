@@ -37,7 +37,7 @@ This project provides APIs and real-time services to connect users, create and m
 ## 🏗️ Tech Stack  
 
 - **Backend Framework**: [Node.js](https://nodejs.org/) + [Express.js](https://expressjs.com/)  
-- **Database**: Firebase Firestore (for chat, notifications, and real-time data) + SQL/NoSQL (for structured project data)  
+- **Database**: Firebase Firestore (for chat, notifications, and real-time data) + MongoDB  
 - **Authentication**: JWT (JSON Web Tokens)  
 - **Payments**: [ZaloPay API](https://zalopay.vn/)  
 - **Storage**: Firebase Storage for media files  
